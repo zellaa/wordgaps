@@ -1,8 +1,7 @@
 import json
 from collections import defaultdict
 import typer
-from wordgaps.utils import is_outbound, is_inbound, DICT_PATH, VALID_WORDS_JSON_PATH
-from wordgaps.plotter import plot_word, plot_distribution, plot_counts_by_length
+from wordgaps.utils import classify_word, DICT_PATH, VALID_WORDS_JSON_PATH
 
 app = typer.Typer(help="Wordgaps CLI to analyze outbound and inbound words.")
 
@@ -12,32 +11,31 @@ def run_find_longest():
         typer.echo(f"Error: Dictionary not found at {DICT_PATH}", err=True)
         raise typer.Exit(code=1)
 
-    buckets = defaultdict(list)
+    outbound_words = []
+    inbound_words = []
+    max_out_len = 0
+    max_in_len = 0
+
     with open(DICT_PATH, "r", encoding="utf-8") as f:
         for line in f:
             word = line.rstrip()
-            if word:
-                buckets[len(word)].append(word)
+            if not word:
+                continue
 
-    outbound_words = []
-    max_out_len = 0
-    for wlen in sorted(buckets.keys(), reverse=True):
-        for word in buckets[wlen]:
-            if is_outbound(word):
-                outbound_words.append(word)
-        if outbound_words:
-            max_out_len = wlen
-            break
-
-    inbound_words = []
-    max_in_len = 0
-    for wlen in sorted(buckets.keys(), reverse=True):
-        for word in buckets[wlen]:
-            if is_inbound(word):
-                inbound_words.append(word)
-        if inbound_words:
-            max_in_len = wlen
-            break
+            wlen = len(word)
+            outbound, inbound = classify_word(word)
+            if outbound:
+                if wlen > max_out_len:
+                    max_out_len = wlen
+                    outbound_words = [word]
+                elif wlen == max_out_len:
+                    outbound_words.append(word)
+            if inbound:
+                if wlen > max_in_len:
+                    max_in_len = wlen
+                    inbound_words = [word]
+                elif wlen == max_in_len:
+                    inbound_words.append(word)
 
     typer.echo(f"Largest Outbound Words (Length {max_out_len}):")
     for word in outbound_words:
@@ -62,9 +60,10 @@ def run_generate_valid():
                 continue
 
             wlen = len(word)
-            if is_outbound(word):
+            outbound, inbound = classify_word(word)
+            if outbound:
                 results[wlen]["outbound_words"].append(word)
-            if is_inbound(word):
+            if inbound:
                 results[wlen]["inbound_words"].append(word)
 
     sorted_results = {}
@@ -83,6 +82,8 @@ def run_generate_valid():
 
 def run_plot(word: str):
     try:
+        from wordgaps.plotter import plot_word
+
         plot_word(word)
     except Exception as e:
         typer.echo(f"Error generating plot: {e}", err=True)
@@ -155,12 +156,16 @@ def main(
         if not VALID_WORDS_JSON_PATH.exists():
             typer.echo(f"{VALID_WORDS_JSON_PATH} not found. Generating it first...", err=True)
             run_generate_valid()
+        from wordgaps.plotter import plot_distribution
+
         plot_distribution(plot_dist, outbound, inbound, both)
 
     if plot_counts:
         if not VALID_WORDS_JSON_PATH.exists():
             typer.echo(f"{VALID_WORDS_JSON_PATH} not found. Generating it first...", err=True)
             run_generate_valid()
+        from wordgaps.plotter import plot_counts_by_length
+
         plot_counts_by_length()
 
 
