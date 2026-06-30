@@ -2,7 +2,13 @@ import string
 import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
-from wordgaps.utils import is_outbound, is_inbound, REPO_ROOT
+from wordgaps.utils import (
+    alphabet_values,
+    classify_word,
+    prefix_widths,
+    suffix_widths,
+    REPO_ROOT,
+)
 
 
 def plot_word(word: str):
@@ -12,24 +18,11 @@ def plot_word(word: str):
         raise ValueError("Word must only contain alphabetical characters.")
 
     x = list(range(len(word)))
-    y = [string.ascii_uppercase.index(char) for char in word]
+    y = alphabet_values(word)
+    out_widths = prefix_widths(word)
+    in_widths = suffix_widths(word)
 
-    out_widths = []
-    curr_min = y[0]
-    curr_max = y[0]
-    out_widths.append(0)
-    for i in range(1, len(word)):
-        curr_min = min(curr_min, y[i])
-        curr_max = max(curr_max, y[i])
-        out_widths.append(curr_max - curr_min)
-
-    in_widths = []
-    for i in range(len(word)):
-        suffix = y[i:]
-        in_widths.append(max(suffix) - min(suffix))
-
-    outbound = is_outbound(word)
-    inbound = is_inbound(word)
+    outbound, inbound = classify_word(word)
 
     plot_outbound_width = True
     plot_inbound_width = True
@@ -212,7 +205,6 @@ def plot_word(word: str):
 def plot_distribution(N: int, show_outbound: bool, show_inbound: bool, show_both: bool):
     """Plot envelope width distribution for all valid words of length N."""
     import json
-    import string
     from wordgaps.utils import VALID_WORDS_JSON_PATH, REPO_ROOT
 
     with open(VALID_WORDS_JSON_PATH, "r", encoding="utf-8") as f:
@@ -254,25 +246,6 @@ def plot_distribution(N: int, show_outbound: bool, show_inbound: bool, show_both
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / f"dist_{N}_{mode}.png"
 
-    def get_outbound_widths(w: str):
-        vals = [string.ascii_uppercase.index(c) for c in w.upper()]
-        w_out = [0]
-        c_min = vals[0]
-        c_max = vals[0]
-        for val in vals[1:]:
-            c_min = min(c_min, val)
-            c_max = max(c_max, val)
-            w_out.append(c_max - c_min)
-        return w_out
-
-    def get_inbound_widths(w: str):
-        vals = [string.ascii_uppercase.index(c) for c in w.upper()]
-        w_in = []
-        for j in range(len(vals)):
-            suffix = vals[j:]
-            w_in.append(max(suffix) - min(suffix))
-        return w_in
-
     x_vals = list(range(1, N + 1))
 
     if mode == "both":
@@ -285,7 +258,7 @@ def plot_distribution(N: int, show_outbound: bool, show_inbound: bool, show_both
         ax2.grid(True, which="both", color="#e2e8f0", linestyle="--", linewidth=0.7)
 
         for w in out_words:
-            ax1.plot(x_vals, get_outbound_widths(w), color="#3b82f6", alpha=0.3, linewidth=1.5)
+            ax1.plot(x_vals, prefix_widths(w), color="#3b82f6", alpha=0.3, linewidth=1.5)
         ax1.set_title(
             r"\textbf{Outbound Envelope Width Distribution (Length " + str(N) + ", " + str(len(out_words)) + " words)}",
             fontsize=14, color="#0f172a", pad=15
@@ -294,7 +267,7 @@ def plot_distribution(N: int, show_outbound: bool, show_inbound: bool, show_both
         ax1.set_ylim(-1, 26)
 
         for w in in_words:
-            ax2.plot(x_vals, get_inbound_widths(w), color="#ef4444", alpha=0.3, linewidth=1.5)
+            ax2.plot(x_vals, suffix_widths(w), color="#ef4444", alpha=0.3, linewidth=1.5)
         ax2.set_title(
             r"\textbf{Inbound Envelope Width Distribution (Length " + str(N) + ", " + str(len(in_words)) + " words)}",
             fontsize=14, color="#0f172a", pad=15
@@ -316,7 +289,7 @@ def plot_distribution(N: int, show_outbound: bool, show_inbound: bool, show_both
 
         if mode == "outbound":
             for w in out_words:
-                ax.plot(x_vals, get_outbound_widths(w), color="#3b82f6", alpha=0.3, linewidth=1.5)
+                ax.plot(x_vals, prefix_widths(w), color="#3b82f6", alpha=0.3, linewidth=1.5)
             ax.set_title(
                 r"\textbf{Outbound Envelope Width Distribution (Length " + str(N) + ", " + str(len(out_words)) + " words)}",
                 fontsize=14, color="#0f172a", pad=15
@@ -324,7 +297,7 @@ def plot_distribution(N: int, show_outbound: bool, show_inbound: bool, show_both
             ax.set_ylabel(r"\textbf{Prefix Width (Letters)}", fontsize=12, color="#0f172a")
         else:
             for w in in_words:
-                ax.plot(x_vals, get_inbound_widths(w), color="#ef4444", alpha=0.3, linewidth=1.5)
+                ax.plot(x_vals, suffix_widths(w), color="#ef4444", alpha=0.3, linewidth=1.5)
             ax.set_title(
                 r"\textbf{Inbound Envelope Width Distribution (Length " + str(N) + ", " + str(len(in_words)) + " words)}",
                 fontsize=14, color="#0f172a", pad=15
