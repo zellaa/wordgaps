@@ -1,4 +1,5 @@
 import string
+import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 from wordgaps.utils import is_outbound, is_inbound, REPO_ROOT
@@ -202,3 +203,150 @@ def plot_word(word: str):
         bbox_inches="tight",
     )
     print(f"Plot saved successfully to {output_path.resolve()}")
+    try:
+        subprocess.run(["open", str(output_path)], check=True)
+    except Exception as e:
+        print(f"Could not open plot file: {e}")
+
+
+def plot_distribution(N: int, show_outbound: bool, show_inbound: bool, show_both: bool):
+    """Plot envelope width distribution for all valid words of length N."""
+    import json
+    import string
+    from wordgaps.utils import VALID_WORDS_JSON_PATH, REPO_ROOT
+
+    with open(VALID_WORDS_JSON_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    length_str = str(N)
+    if length_str not in data:
+        print(f"No valid words of length {N} found in {VALID_WORDS_JSON_PATH}.")
+        return
+
+    out_words = data[length_str].get("outbound_words", []) if (show_outbound or show_both) else []
+    in_words = data[length_str].get("inbound_words", []) if (show_inbound or show_both) else []
+
+    if show_both or (show_outbound and show_inbound):
+        mode = "both"
+    elif show_outbound:
+        mode = "outbound"
+    else:
+        mode = "inbound"
+
+    if mode == "outbound" and not out_words:
+        print(f"No outbound words of length {N} found.")
+        return
+    if mode == "inbound" and not in_words:
+        print(f"No inbound words of length {N} found.")
+        return
+    if mode == "both" and not out_words and not in_words:
+        print(f"No outbound or inbound words of length {N} found.")
+        return
+
+    plt.style.use("default")
+    plt.rcParams.update({
+        "text.usetex": True,
+        "font.family": "serif",
+        "font.serif": ["Computer Modern Roman", "Times New Roman", "DejaVu Serif"],
+    })
+
+    output_dir = REPO_ROOT / "output-images"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / f"dist_{N}_{mode}.png"
+
+    def get_outbound_widths(w: str):
+        vals = [string.ascii_uppercase.index(c) for c in w.upper()]
+        w_out = [0]
+        c_min = vals[0]
+        c_max = vals[0]
+        for val in vals[1:]:
+            c_min = min(c_min, val)
+            c_max = max(c_max, val)
+            w_out.append(c_max - c_min)
+        return w_out
+
+    def get_inbound_widths(w: str):
+        vals = [string.ascii_uppercase.index(c) for c in w.upper()]
+        w_in = []
+        for j in range(len(vals)):
+            suffix = vals[j:]
+            w_in.append(max(suffix) - min(suffix))
+        return w_in
+
+    x_vals = list(range(1, N + 1))
+
+    if mode == "both":
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 9), sharex=True, dpi=300)
+        fig.patch.set_facecolor("#ffffff")
+        ax1.set_facecolor("#ffffff")
+        ax2.set_facecolor("#ffffff")
+
+        ax1.grid(True, which="both", color="#e2e8f0", linestyle="--", linewidth=0.7)
+        ax2.grid(True, which="both", color="#e2e8f0", linestyle="--", linewidth=0.7)
+
+        for w in out_words:
+            ax1.plot(x_vals, get_outbound_widths(w), color="#3b82f6", alpha=0.3, linewidth=1.5)
+        ax1.set_title(
+            r"\textbf{Outbound Envelope Width Distribution (Length " + str(N) + ", " + str(len(out_words)) + " words)}",
+            fontsize=14, color="#0f172a", pad=15
+        )
+        ax1.set_ylabel(r"\textbf{Prefix Width (Letters)}", fontsize=12, color="#0f172a")
+        ax1.set_ylim(-1, 26)
+
+        for w in in_words:
+            ax2.plot(x_vals, get_inbound_widths(w), color="#ef4444", alpha=0.3, linewidth=1.5)
+        ax2.set_title(
+            r"\textbf{Inbound Envelope Width Distribution (Length " + str(N) + ", " + str(len(in_words)) + " words)}",
+            fontsize=14, color="#0f172a", pad=15
+        )
+        ax2.set_ylabel(r"\textbf{Suffix Width (Letters)}", fontsize=12, color="#0f172a")
+        ax2.set_xlabel(r"\textbf{Sequence Position}", fontsize=12, color="#0f172a")
+        ax2.set_ylim(-1, 26)
+        ax2.set_xticks(x_vals)
+
+        for ax in (ax1, ax2):
+            for spine in ax.spines.values():
+                spine.set_color("#475569")
+                spine.set_linewidth(1)
+    else:
+        fig, ax = plt.subplots(figsize=(10, 6), dpi=300)
+        fig.patch.set_facecolor("#ffffff")
+        ax.set_facecolor("#ffffff")
+        ax.grid(True, which="both", color="#e2e8f0", linestyle="--", linewidth=0.7)
+
+        if mode == "outbound":
+            for w in out_words:
+                ax.plot(x_vals, get_outbound_widths(w), color="#3b82f6", alpha=0.3, linewidth=1.5)
+            ax.set_title(
+                r"\textbf{Outbound Envelope Width Distribution (Length " + str(N) + ", " + str(len(out_words)) + " words)}",
+                fontsize=14, color="#0f172a", pad=15
+            )
+            ax.set_ylabel(r"\textbf{Prefix Width (Letters)}", fontsize=12, color="#0f172a")
+        else:
+            for w in in_words:
+                ax.plot(x_vals, get_inbound_widths(w), color="#ef4444", alpha=0.3, linewidth=1.5)
+            ax.set_title(
+                r"\textbf{Inbound Envelope Width Distribution (Length " + str(N) + ", " + str(len(in_words)) + " words)}",
+                fontsize=14, color="#0f172a", pad=15
+            )
+            ax.set_ylabel(r"\textbf{Suffix Width (Letters)}", fontsize=12, color="#0f172a")
+
+        ax.set_xlabel(r"\textbf{Sequence Position}", fontsize=12, color="#0f172a")
+        ax.set_ylim(-1, 26)
+        ax.set_xticks(x_vals)
+        for spine in ax.spines.values():
+            spine.set_color("#475569")
+            spine.set_linewidth(1)
+
+    plt.tight_layout()
+    plt.savefig(
+        output_path,
+        facecolor=fig.get_facecolor(),
+        edgecolor="none",
+        bbox_inches="tight",
+    )
+    print(f"Distribution plot saved successfully to {output_path.resolve()}")
+    try:
+        subprocess.run(["open", str(output_path)], check=True)
+    except Exception as e:
+        print(f"Could not open plot file: {e}")

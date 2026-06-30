@@ -2,7 +2,7 @@ import json
 from collections import defaultdict
 import typer
 from wordgaps.utils import is_outbound, is_inbound, DICT_PATH, VALID_WORDS_JSON_PATH
-from wordgaps.plotter import plot_word
+from wordgaps.plotter import plot_word, plot_distribution
 
 app = typer.Typer(help="Wordgaps CLI to analyze outbound and inbound words.")
 
@@ -106,9 +106,36 @@ def main(
         "--generate-valid",
         help="Generate the dict/valid_words.json file",
     ),
+    plot_dist: int = typer.Option(
+        None,
+        "--plot-dist",
+        help="Plot the envelope width distribution for all valid words of length N",
+    ),
+    outbound: bool = typer.Option(
+        False,
+        "--outbound",
+        help="Plot outbound distribution (used with --plot-dist)",
+    ),
+    inbound: bool = typer.Option(
+        False,
+        "--inbound",
+        help="Plot inbound distribution (used with --plot-dist)",
+    ),
+    both: bool = typer.Option(
+        False,
+        "--both",
+        help="Plot both outbound and inbound distributions (used with --plot-dist)",
+    ),
 ):
-    if not (find_longest or plot or generate_valid):
-        raise typer.BadParameter("Please specify at least one option: --find-longest, --plot, or --generate-valid.")
+    if not (find_longest or plot or generate_valid or plot_dist is not None):
+        raise typer.BadParameter(
+            "Please specify at least one option: --find-longest, --plot, --generate-valid, or --plot-dist."
+        )
+
+    if plot_dist is not None and not (outbound or inbound or both):
+        raise typer.BadParameter(
+            "When using --plot-dist, you must specify --outbound, --inbound, or --both."
+        )
 
     if find_longest:
         run_find_longest()
@@ -118,6 +145,12 @@ def main(
 
     if plot:
         run_plot(plot)
+
+    if plot_dist is not None:
+        if not VALID_WORDS_JSON_PATH.exists():
+            typer.echo(f"{VALID_WORDS_JSON_PATH} not found. Generating it first...", err=True)
+            run_generate_valid()
+        plot_distribution(plot_dist, outbound, inbound, both)
 
 
 if __name__ == "__main__":
