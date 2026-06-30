@@ -1,7 +1,10 @@
-.PHONY: find-words plot
+.PHONY: find-words plot generate-valid-words
 
 find-words:
-	uv run main.py
+	uv run wordgaps --find-longest
+
+generate-valid-words:
+	uv run wordgaps --generate-valid
 
 ifeq (plot,$(firstword $(MAKECMDGOALS)))
   PLOT_WORD := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
@@ -13,5 +16,5 @@ plot:
 		echo "Error: Please specify a word, e.g., 'make plot bar'"; \
 		exit 1; \
 	fi
-	uv run plotter.py $(PLOT_WORD)
-	open wordgap.png
+	uv run wordgaps --plot $(PLOT_WORD)
+	open output-images/$(shell echo $(PLOT_WORD) | tr A-Z a-z).png

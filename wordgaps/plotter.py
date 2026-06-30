@@ -1,39 +1,14 @@
-import sys
-from pathlib import Path
 import string
 import numpy as np
 import matplotlib.pyplot as plt
+from wordgaps.utils import is_outbound, is_inbound, REPO_ROOT
 
 
-def is_outbound(word: str) -> bool:
-    """Check if a word is outbound."""
-    if not word:
-        return False
-    min_char = max_char = word[0]
-    for char in word[1:]:
-        if char < min_char:
-            min_char = char
-        elif char > max_char:
-            max_char = char
-        else:
-            return False
-    return True
-
-
-def is_inbound(word: str) -> bool:
-    """Check if a word is inbound."""
-    return is_outbound(word[::-1])
-
-
-def main():
-    if len(sys.argv) < 2:
-        print("Usage: uv run plotter.py <word>")
-        sys.exit(1)
-
-    word = sys.argv[1].upper()
+def plot_word(word: str):
+    """Plot the trajectory and envelope widths for a word."""
+    word = word.upper()
     if not word.isalpha():
-        print("Error: Word must only contain alphabetical characters.")
-        sys.exit(1)
+        raise ValueError("Word must only contain alphabetical characters.")
 
     x = list(range(len(word)))
     y = [string.ascii_uppercase.index(char) for char in word]
@@ -90,15 +65,15 @@ def main():
             x_eval = np.linspace(i, i + 1, 100)
             y_traj = y_a + (y_b - y_a) * (x_eval - i)
 
-            if y_b < current_min:  # New minimum
+            if y_b < current_min:
                 top = np.minimum(y_traj, current_min)
                 bottom = np.ones_like(x_eval) * current_max
                 current_min = y_b
-            elif y_b > current_max:  # New maximum
+            elif y_b > current_max:
                 top = np.ones_like(x_eval) * current_min
                 bottom = np.maximum(y_traj, current_max)
                 current_max = y_b
-            else:  # Not outbound
+            else:
                 top = np.ones_like(x_eval) * current_min
                 bottom = np.ones_like(x_eval) * current_max
 
@@ -111,7 +86,6 @@ def main():
                 edgecolor="none",
             )
 
-    # Plot trajectory
     (traj_line,) = ax1.plot(
         x,
         y,
@@ -141,9 +115,6 @@ def main():
 
     legend_handles2 = []
     legend_labels2 = []
-
-    out_status = "Yes" if outbound else "No"
-    in_status = "Yes" if inbound else "No"
 
     if plot_outbound_width:
         (out_width_line,) = ax2.plot(
@@ -221,7 +192,9 @@ def main():
 
     plt.tight_layout()
 
-    output_path = Path("wordgap.png")
+    output_dir = REPO_ROOT / "output-images"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / f"{word.lower()}.png"
     plt.savefig(
         output_path,
         facecolor=fig.get_facecolor(),
@@ -229,7 +202,3 @@ def main():
         bbox_inches="tight",
     )
     print(f"Plot saved successfully to {output_path.resolve()}")
-
-
-if __name__ == "__main__":
-    main()
