@@ -87,12 +87,3 @@ A word is inbound if and only if the suffix width sequence is strictly decreasin
 ```math
 W^{\text{in}}_{k-1} > W^{\text{in}}_k \quad \forall k \in \{2, \dots, n\}
 ```
-
-### Examples
-* **`churnmilk`** ($v = [3, 8, 21, 18, 14, 13, 9, 12, 11]$): **Inbound**
-  * Its reverse is `klimnruhc` ($v^R = [11, 12, 9, 13, 14, 18, 21, 8, 3]$), which is outbound.
-* **`kilohertz`** ($v = [11, 9, 12, 15, 8, 5, 18, 20, 26]$): **Not Inbound**
-  * Its reverse is `ztreholik` ($v^R = [26, 20, 18, 5, 8, 15, 12, 9, 11]$).
-  * At $k=5$, $\text{H}\ (8)$ lies within the range $[5, 26]$ of the preceding suffix characters in $w^R$.
-
----
