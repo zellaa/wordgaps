@@ -1,6 +1,16 @@
+import subprocess
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+
+def get_repo_root() -> Path:
+    try:
+        res = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], stderr=subprocess.DEVNULL)
+        return Path(res.decode("utf-8").strip())
+    except Exception:
+        return Path(__file__).resolve().parent.parent
+
+
+REPO_ROOT = get_repo_root()
 DICT_PATH = REPO_ROOT / "dict" / "words.txt"
 VALID_WORDS_JSON_PATH = REPO_ROOT / "dict" / "valid_words.json"
 

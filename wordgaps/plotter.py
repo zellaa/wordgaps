@@ -350,3 +350,70 @@ def plot_distribution(N: int, show_outbound: bool, show_inbound: bool, show_both
         subprocess.run(["open", str(output_path)], check=True)
     except Exception as e:
         print(f"Could not open plot file: {e}")
+
+
+def plot_counts_by_length():
+    """Plot the number of inbound and outbound words per word length."""
+    import json
+    from wordgaps.utils import VALID_WORDS_JSON_PATH, REPO_ROOT
+
+    with open(VALID_WORDS_JSON_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    lengths = sorted([int(k) for k in data.keys()])
+    out_counts = [len(data[str(l)].get("outbound_words", [])) for l in lengths]
+    in_counts = [len(data[str(l)].get("inbound_words", [])) for l in lengths]
+
+    plt.style.use("default")
+    plt.rcParams.update({
+        "text.usetex": True,
+        "font.family": "serif",
+        "font.serif": ["Computer Modern Roman", "Times New Roman", "DejaVu Serif"],
+    })
+
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=300)
+    fig.patch.set_facecolor("#ffffff")
+    ax.set_facecolor("#ffffff")
+    ax.grid(True, which="both", color="#e2e8f0", linestyle="--", linewidth=0.7)
+
+    x = np.arange(len(lengths))
+    width = 0.35
+
+    rects1 = ax.bar(x - width/2, out_counts, width, label='Outbound Words', color='#3b82f6', alpha=0.85)
+    rects2 = ax.bar(x + width/2, in_counts, width, label='Inbound Words', color='#ef4444', alpha=0.85)
+
+    ax.set_title(r"\textbf{Valid Word Counts by Length}", fontsize=16, color="#0f172a", pad=15)
+    ax.set_xlabel(r"\textbf{Word Length (Letters)}", fontsize=12, color="#0f172a", labelpad=10)
+    ax.set_ylabel(r"\textbf{Number of Words}", fontsize=12, color="#0f172a", labelpad=10)
+    ax.set_xticks(x)
+    ax.set_xticklabels([str(l) for l in lengths], fontsize=10, color="#0f172a")
+
+    ax.bar_label(rects1, padding=3, fontsize=8, color="#334155")
+    ax.bar_label(rects2, padding=3, fontsize=8, color="#334155")
+
+    max_val = max(max(out_counts), max(in_counts)) if out_counts or in_counts else 0
+    ax.set_ylim(0, max_val * 1.15 if max_val > 0 else 10)
+
+    ax.legend(loc="upper right", framealpha=0.9, edgecolor="#cbd5e1")
+
+    for spine in ax.spines.values():
+        spine.set_color("#475569")
+        spine.set_linewidth(1)
+
+    plt.tight_layout()
+
+    output_dir = REPO_ROOT / "output-images"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / "word_counts_by_length.png"
+    plt.savefig(
+        output_path,
+        facecolor=fig.get_facecolor(),
+        edgecolor="none",
+        bbox_inches="tight",
+    )
+    print(f"Counts plot saved successfully to {output_path.resolve()}")
+
+    try:
+        subprocess.run(["open", str(output_path)], check=True)
+    except Exception as e:
+        print(f"Could not open plot file: {e}")

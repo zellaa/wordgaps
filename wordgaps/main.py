@@ -2,7 +2,7 @@ import json
 from collections import defaultdict
 import typer
 from wordgaps.utils import is_outbound, is_inbound, DICT_PATH, VALID_WORDS_JSON_PATH
-from wordgaps.plotter import plot_word, plot_distribution
+from wordgaps.plotter import plot_word, plot_distribution, plot_counts_by_length
 
 app = typer.Typer(help="Wordgaps CLI to analyze outbound and inbound words.")
 
@@ -126,10 +126,15 @@ def main(
         "--both",
         help="Plot both outbound and inbound distributions (used with --plot-dist)",
     ),
+    plot_counts: bool = typer.Option(
+        False,
+        "--plot-counts",
+        help="Plot the counts of inbound and outbound words per word length",
+    ),
 ):
-    if not (find_longest or plot or generate_valid or plot_dist is not None):
+    if not (find_longest or plot or generate_valid or plot_dist is not None or plot_counts):
         raise typer.BadParameter(
-            "Please specify at least one option: --find-longest, --plot, --generate-valid, or --plot-dist."
+            "Please specify at least one option: --find-longest, --plot, --generate-valid, --plot-dist, or --plot-counts."
         )
 
     if plot_dist is not None and not (outbound or inbound or both):
@@ -151,6 +156,12 @@ def main(
             typer.echo(f"{VALID_WORDS_JSON_PATH} not found. Generating it first...", err=True)
             run_generate_valid()
         plot_distribution(plot_dist, outbound, inbound, both)
+
+    if plot_counts:
+        if not VALID_WORDS_JSON_PATH.exists():
+            typer.echo(f"{VALID_WORDS_JSON_PATH} not found. Generating it first...", err=True)
+            run_generate_valid()
+        plot_counts_by_length()
 
 
 if __name__ == "__main__":

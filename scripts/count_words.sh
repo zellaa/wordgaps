@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-# Path to the valid_words.json file relative to the script location
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-JSON_PATH="$SCRIPT_DIR/../dict/valid_words.json"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -z "$REPO_ROOT" ]; then
+  echo "Error: Not in a git repository or git is not installed."
+  exit 1
+fi
+JSON_PATH="$REPO_ROOT/dict/valid_words.json"
 
+set +u
 LENGTH=$1
 if [ -z "$LENGTH" ]; then
   read -p "Enter word length: " LENGTH
 fi
+set -u
 
 if [ ! -f "$JSON_PATH" ]; then
   echo "Error: valid_words.json not found at $JSON_PATH"

@@ -87,3 +87,63 @@ A word is inbound if and only if the suffix width sequence is strictly decreasin
 ```math
 W^{\text{in}}_{k-1} > W^{\text{in}}_k \quad \forall k \in \{2, \dots, n\}
 ```
+
+## Command Line Interface (CLI) Usage
+
+The project is structured as a Python module runnable via the `wordgaps` command using `uv`. 
+
+Needs uv, fzf, and jq to run.
+
+### 1. Dictionary Scanning & Analysis
+
+#### Find Longest Words
+Find the longest outbound and inbound words in the dictionary:
+```bash
+uv run wordgaps --find-longest
+```
+
+#### Generate Valid Words JSON Database
+Analyze all words in the dictionary, group them by length and category, and output to `dict/valid_words.json`:
+```bash
+uv run wordgaps --generate-valid
+```
+
+---
+
+### 2. Trajectory & Distribution Plotting
+
+#### Visualize a Single Word
+Generate the trajectory and envelope width plot for a specific word (saved to `output-images/{word}.png` and opened automatically):
+```bash
+uv run wordgaps --plot <word>
+```
+
+#### Plot Envelope Width Distributions
+Visualize the envelope width curves for all valid words of a specific length $N$. You must specify whether to plot outbound, inbound, or both (both outputs a two-panel vertical subplot, saved to `output-images/dist_{N}_{mode}.png` and opened automatically):
+```bash
+# Plot outbound distributions for length 5
+uv run wordgaps --plot-dist 5 --outbound
+
+# Plot inbound distributions for length 5
+uv run wordgaps --plot-dist 5 --inbound
+
+# Plot both distributions in a shared x-axis chart
+uv run wordgaps --plot-dist 5 --both
+```
+
+#### Plot Counts Distribution by Length
+Generate a grouped bar chart showing the count of valid outbound and inbound words for each word length in the database (saved to `output-images/word_counts_by_length.png` and opened automatically):
+```bash
+uv run wordgaps --plot-counts
+```
+
+---
+
+### 3. Word Count Utility Script
+
+A bash script is provided in `count_words.sh` to query the number of valid inbound and outbound words for a given word length.
+
+Run the script by providing the word length as an argument (or it will prompt you if left empty):
+```bash
+./scripts/count_words.sh 5
+```
