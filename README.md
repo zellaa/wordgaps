@@ -5,9 +5,11 @@
 ## Mathematical Formulation
 
 Let a word $w$ of length $n$ be represented as a sequence of character values:
-$$
+
+```math
 v = [v_1, v_2, \dots, v_n]
-$$
+```
+
 where each $v_i \in \{1, 2, \dots, 26\}$ represents the alphabetical position of character $c_i$ (e.g., $\text{A} = 1, \text{B} = 2, \dots, \text{Z} = 26$).
 
 ---
