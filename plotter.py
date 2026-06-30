@@ -35,12 +35,9 @@ def main():
         print("Error: Word must only contain alphabetical characters.")
         sys.exit(1)
 
-    # Set up coordinates
     x = list(range(len(word)))
-    # Alphabet position: A -> 0, B -> 1, ..., Z -> 25
     y = [string.ascii_uppercase.index(char) for char in word]
 
-    # Calculate Outbound (Prefix) envelope widths
     out_widths = []
     curr_min = y[0]
     curr_max = y[0]
@@ -50,13 +47,11 @@ def main():
         curr_max = max(curr_max, y[i])
         out_widths.append(curr_max - curr_min)
 
-    # Calculate Inbound (Suffix) envelope widths
     in_widths = []
     for i in range(len(word)):
         suffix = y[i:]
         in_widths.append(max(suffix) - min(suffix))
 
-    # Determine which width curves to plot
     outbound = is_outbound(word)
     inbound = is_inbound(word)
 
@@ -68,7 +63,6 @@ def main():
     elif inbound and not outbound:
         plot_outbound_width = False
 
-    # LaTeX styling configuration
     plt.style.use("default")
     plt.rcParams.update({
         "text.usetex": True,
@@ -76,21 +70,17 @@ def main():
         "font.serif": ["Computer Modern Roman", "Times New Roman", "DejaVu Serif"],
     })
 
-    # Create 2 subplots sharing the x-axis
     fig, (ax1, ax2) = plt.subplots(
         2, 1, figsize=(10, 9), sharex=True, dpi=300
     )
 
-    # White background for both plots
     fig.patch.set_facecolor("#ffffff")
     ax1.set_facecolor("#ffffff")
     ax2.set_facecolor("#ffffff")
 
-    # Grid lines - subtle light gray dashed lines
     ax1.grid(True, which="both", color="#e2e8f0", linestyle="--", linewidth=0.7)
     ax2.grid(True, which="both", color="#e2e8f0", linestyle="--", linewidth=0.7)
 
-    # ------------------ SUBPLOT 1: Trajectory & Envelope Shading ------------------
     if len(word) >= 2:
         current_min = y[0]
         current_max = y[0]
@@ -116,7 +106,7 @@ def main():
                 x_eval,
                 top,
                 bottom,
-                color="#3b82f6",  # Light blue
+                color="#3b82f6",
                 alpha=0.15,
                 edgecolor="none",
             )
@@ -149,7 +139,6 @@ def main():
         r"\textbf{Alphabetical Position}", fontsize=12, color="#0f172a", labelpad=10
     )
 
-    # ------------------ SUBPLOT 2: Shaded Area Widths ------------------
     legend_handles2 = []
     legend_labels2 = []
 
@@ -160,7 +149,7 @@ def main():
         (out_width_line,) = ax2.plot(
             x,
             out_widths,
-            color="#3b82f6",  # Blue
+            color="#3b82f6",
             linewidth=2,
             marker="s",
             markersize=5,
@@ -177,7 +166,7 @@ def main():
         (in_width_line,) = ax2.plot(
             x,
             in_widths,
-            color="#ef4444",  # Red
+            color="#ef4444",
             linewidth=2,
             marker="^",
             markersize=5,
@@ -200,20 +189,16 @@ def main():
         r"\textbf{Word Letter Sequence}", fontsize=12, color="#0f172a", labelpad=10
     )
 
-    # Ensure y-axis on width plot goes from 0 to 25
     ax2.set_ylim(-1, 26)
 
-    # Configure shared x-axis labels on the bottom plot
     ax2.set_xticks(x)
     ax2.set_xticklabels(list(word), fontsize=12, color="#0f172a")
 
-    # Style spines for both subplots
     for ax_sp in (ax1, ax2):
         for spine in ax_sp.spines.values():
             spine.set_color("#475569")
             spine.set_linewidth(1)
 
-    # Legend for Subplot 1
     envelope_patch = plt.Rectangle((0, 0), 1, 1, fc="#3b82f6", alpha=0.15)
     ax1.legend(
         [envelope_patch, traj_line],
@@ -224,7 +209,6 @@ def main():
         edgecolor="#cbd5e1",
     )
 
-    # Legend for Subplot 2
     if legend_handles2:
         ax2.legend(
             legend_handles2,
@@ -237,7 +221,6 @@ def main():
 
     plt.tight_layout()
 
-    # Save the output image
     output_path = Path("wordgap.png")
     plt.savefig(
         output_path,
