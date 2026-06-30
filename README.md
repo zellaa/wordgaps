@@ -1,6 +1,5 @@
 # Outbound and Inbound Words
 
----
 
 ## Mathematical Formulation
 
@@ -20,24 +19,28 @@ where each $v_i \in \{1, 2, \dots, 26\}$ represents the alphabetical position of
 A word is **outbound** (or $n$-outbound) if every letter in the word is either strictly before or strictly after all the letters that precede it. 
 
 ### Mathematical Formulation
-Formally, for all prefix strings of length $k \in \{2, \dots, n\}$:
-$$
+In other words, for all prefix strings of length $k \in \{2, \dots, n\}$:
+
+```math
 v_k < \min_{1 \le j < k} \{v_j\} \quad \text{or} \quad v_k > \max_{1 \le j < k} \{v_j\}
-$$
+```
 
 ### Envelope Width Formulation
 Define the running minimum and maximum of the prefix of length $k$ (for $1 \le k \le n$) as:
-$$
+
+```math
 v^{\min}_k = \min_{1 \le j \le k} \{v_j\} \quad \text{and} \quad v^{\max}_k = \max_{1 \le j \le k} \{v_j\}
-$$
+```
 The **prefix width** at step $k$ is:
-$$
+
+```math
 W^{\text{out}}_k = v^{\max}_k - v^{\min}_k
-$$
+```
 A word is outbound if and only if the prefix width sequence is strictly increasing:
-$$
+
+```math
 W^{\text{out}}_k > W^{\text{out}}_{k-1} \quad \forall k \in \{2, \dots, n\}
-$$
+```
 
 ### Examples
 * **`car`** ($v = [3, 1, 18]$): **Outbound**
