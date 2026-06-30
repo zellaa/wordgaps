@@ -60,35 +60,39 @@ W^{\text{out}}_k > W^{\text{out}}_{k-1} \quad \forall k \in \{2, \dots, n\}
 A word of length $n$ is **inbound** (or $n$-inbound) if every letter in the word is either strictly before or strictly after all the letters that follow it. 
 
 ### Mathematical Formulation
-Formally, for all suffix strings $k \in \{1, \dots, n-1\}$:
-$$
-v_k < \min_{k < j \le n} \{v_j\} \quad \text{or} \quad v_k > \max_{k < j \le n} \{v_j\}
-$$
+In other words, for all suffix strings starting at index $k \in \{1, \dots, n-1\}$:
 
+```math
+v_k < \min_{k < j \le n} \{v_j\} \quad \text{or} \quad v_k > \max_{k < j \le n} \{v_j\}
+```
 Equivalently, a word $w$ is inbound if and only if its reversed sequence $w^R$ is outbound:
-$$
+
+```math
 \text{inbound}(w) \iff \text{outbound}(w^R)
-$$
+```
 
 ### Envelope Width Formulation
 Define the running minimum and maximum of the suffix starting at index $k$ (for $1 \le k \le n$) as:
-$$
+
+```math
 v^{\min, \text{sfx}}_k = \min_{k \le j \le n} \{v_j\} \quad \text{and} \quad v^{\max, \text{sfx}}_k = \max_{k \le j \le n} \{v_j\}
-$$
-The **suffix envelope width** at index $k$ is:
-$$
+```
+The **suffix width** at step $k$ is:
+
+```math
 W^{\text{in}}_k = v^{\max, \text{sfx}}_k - v^{\min, \text{sfx}}_k
-$$
-A word is inbound if and only if the suffix envelope width sequence is strictly decreasing:
-$$
+```
+A word is inbound if and only if the suffix width sequence is strictly decreasing:
+
+```math
 W^{\text{in}}_{k-1} > W^{\text{in}}_k \quad \forall k \in \{2, \dots, n\}
-$$
+```
 
 ### Examples
 * **`churnmilk`** ($v = [3, 8, 21, 18, 14, 13, 9, 12, 11]$): **Inbound**
   * Its reverse is `klimnruhc` ($v^R = [11, 12, 9, 13, 14, 18, 21, 8, 3]$), which is outbound.
 * **`kilohertz`** ($v = [11, 9, 12, 15, 8, 5, 18, 20, 26]$): **Not Inbound**
   * Its reverse is `ztreholik` ($v^R = [26, 20, 18, 5, 8, 15, 12, 9, 11]$).
-  * At $k=5$, $\text{H}\ (8)$ lies within the preceding prefix range $[5, 26]$.
+  * At $k=5$, $\text{H}\ (8)$ lies within the range $[5, 26]$ of the preceding suffix characters in $w^R$.
 
 ---
