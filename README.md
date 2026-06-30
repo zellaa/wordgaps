@@ -47,6 +47,11 @@ W^{\text{out}}_k > W^{\text{out}}_{k-1} \quad \forall k \in \{2, \dots, n\}
   * $k=1$: Initial state.
   * $k=2$: $\text{A}\ (1) < 3$, new range $[1, 3]$.
   * $k=3$: $\text{R}\ (18) > 3$, new range $[1, 18]$.
+
+  Here is the trajectory and envelope width visualization for **`car`**:
+
+  ![car Trajectory](docs/car.png)
+
 * **`app`** ($v = [1, 16, 16]$): **Not Outbound**
   * $k=3$: The second $\text{P}\ (16)$ is not strictly greater than the first $\text{P}\ (16)$.
 * **`pink`** ($v = [16, 9, 14, 11]$): **Not Outbound**
@@ -131,11 +136,19 @@ uv run wordgaps --plot-dist 5 --inbound
 uv run wordgaps --plot-dist 5 --both
 ```
 
+Here is the distribution plot generated for length $N=5$:
+
+![Envelope Width Distributions for N=5](docs/dist_5_both.png)
+
 #### Plot Counts Distribution by Length
 Generate a grouped bar chart showing the count of valid outbound and inbound words for each word length in the database (saved to `output-images/word_counts_by_length.png` and opened automatically):
 ```bash
 uv run wordgaps --plot-counts
 ```
+
+Here is the generated chart showing the count distribution by word length:
+
+![Word Counts by Length](docs/word_counts_by_length.png)
 
 ---
 
